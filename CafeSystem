@@ -1,0 +1,127 @@
+import java.io.*;
+import java.util.*;
+
+public class CafeSystem {
+    LinkedList<CustomerInformation> customerList;
+    Queue<CustomerInformation> counter1;
+    Queue<CustomerInformation> counter2;
+    Queue<CustomerInformation> counter3;
+    Stack<CustomerInformation> completeStack;
+    public static int nextOrderId = 1;
+
+    public CafeSystem() {
+        customerList = new LinkedList<>();
+        counter1 = new LinkedList<>();
+        counter2 = new LinkedList<>();
+        counter3 = new LinkedList<>();
+        completeStack = new Stack<>();
+    }
+
+    public boolean addCustomer(CustomerInformation customer) {
+        boolean addedSuccessfully = customerList.add(customer);
+        processOrders(); // Re-process orders to update counters
+        return addedSuccessfully;
+    }
+    
+    public String generateOrderId() {
+        nextOrderId++;
+        return "Order-" + nextOrderId;
+    }
+
+    public boolean isCustomerIdUnique(String custId) {
+        for (CustomerInformation customer : customerList) {
+            if (customer.custId.equals(custId)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isOrderIdUnique(String orderId) {
+        for (CustomerInformation customer : customerList) {
+            for (orderInformation order : customer.orders) {
+                if (order.orderId.equals(orderId)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    public void removeCustomer(String custName) {
+        customerList.removeIf(customer -> customer.custName.equalsIgnoreCase(custName));
+        processOrders(); // Re-process orders to update counters after removal
+    }
+
+    public CustomerInformation searchCustomer(String custName) {
+        for (CustomerInformation customer : customerList) {
+            if (customer.custName.equalsIgnoreCase(custName)) {
+                return customer;
+            }
+        }
+        return null;
+    }
+
+    public void processOrders() {
+        counter1.clear();
+        counter2.clear();
+        counter3.clear();
+
+        for (CustomerInformation customer : customerList) {
+            boolean hasLargeOrder = false;
+            for (orderInformation order : customer.orders) {
+                if (order.quantity > 5) {
+                    hasLargeOrder = true;
+                    break;
+                }
+            }
+            if (hasLargeOrder) {
+                counter3.add(customer);
+            } else {
+                if (counter1.size() <= counter2.size()) {
+                    counter1.add(customer);
+                } else {
+                    counter2.add(customer);
+                }
+            }
+        }
+    }
+
+    public void completeOrder(CustomerInformation customer) {
+        for (orderInformation order : customer.orders) {
+            order.itemPrice = 0; // Mark order as paid by setting price to 0
+        }
+        completeStack.push(customer);
+    }
+
+    public void readCustomersFromFile(String fileName) {
+        try (BufferedReader br = new BufferedReader(new FileReader("customerList.txt"))) {
+            String inData;
+            CustomerInformation currentCustomer = null;
+
+            while ((inData = br.readLine()) != null) {
+                StringTokenizer st = new StringTokenizer(inData, ";");
+                String sCustId = st.nextToken();
+                String sOrderId = st.nextToken();
+                String sCustName = st.nextToken();
+                String sItemName = st.nextToken();
+                double dItemPrice = Double.parseDouble(st.nextToken());
+                int iQuantity = Integer.parseInt(st.nextToken());
+                String dOrderTime = st.nextToken();
+                String sOrderDate = st.nextToken();
+                String sTableNumber = st.nextToken();
+            
+                if (currentCustomer == null || !currentCustomer.custId.equals(sCustId)) {
+                    currentCustomer = new CustomerInformation(sCustId, sCustName, sTableNumber);
+                    addCustomer(currentCustomer);
+                }
+
+                orderInformation order = new orderInformation(sOrderId, sItemName, dItemPrice, iQuantity, dOrderTime, sOrderDate);
+                currentCustomer.orders.add(order);
+            }
+            System.out.println("Customers loaded successfully");
+        } catch (IOException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}
