@@ -1,0 +1,512 @@
+import javax.swing.*;
+import javax.swing.border.Border;
+import java.awt.*;
+import java.awt.event.*;
+import java.util.*;
+import java.time.*;
+import java.time.format.*;
+import java.io.*;
+
+public class GUI extends JFrame {
+    private CardLayout cardLayout;
+    private JPanel mainPanel;
+    private JButton addNewCustomerButton, removeCustomerButton, searchCustomerButton, showAllReceiptsButton, autoProcessButton;
+    private JTextArea counter1TextArea, counter2TextArea, counter3TextArea;
+    private JButton counter1NextQueueButton, counter2NextQueueButton, counter3NextQueueButton;
+    private CafeSystem cafeSystem;
+
+    public GUI() {
+        setTitle("Chagee");
+        setSize(1000, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        cafeSystem = new CafeSystem();  // Use this instance throughout the GUI class
+
+        cardLayout = new CardLayout();
+        mainPanel = new JPanel(cardLayout);
+
+        // Create welcome panel
+        JPanel welcomePanel = new JPanel(new BorderLayout());
+        JLabel welcomeLabel = new JLabel("Welcome to Chagee", JLabel.CENTER);
+        welcomeLabel.setFont(new Font("Monserrat", Font.BOLD, 36));
+        welcomePanel.add(welcomeLabel, BorderLayout.NORTH);
+
+        // Load your logo image
+        ImageIcon logoIcon = new ImageIcon("logo.png"); // Replace with the actual path to your logo
+        JLabel logoLabel = new JLabel(logoIcon, JLabel.CENTER);
+        welcomePanel.add(logoLabel, BorderLayout.CENTER);
+
+        JButton startButton = new JButton("Start");
+        startButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    cardLayout.show(mainPanel, "main");
+                }
+            });
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.add(startButton);
+        welcomePanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        mainPanel.add(welcomePanel, "welcome");
+
+        // Create main application panel
+        JPanel applicationPanel = new JPanel(new BorderLayout());
+
+        JButton showDataButton = new JButton("Add Data");
+        addNewCustomerButton = new JButton("Add Customer");
+        removeCustomerButton = new JButton("Remove Customer");
+        searchCustomerButton = new JButton("Search Customer");
+        showAllReceiptsButton = new JButton("Show All Receipts");
+        autoProcessButton = new JButton("Auto Process");
+
+        JPanel buttonPanelMain = new JPanel(new FlowLayout());
+        buttonPanelMain.add(addNewCustomerButton);
+        buttonPanelMain.add(removeCustomerButton);
+        buttonPanelMain.add(searchCustomerButton);
+        buttonPanelMain.add(showAllReceiptsButton);
+
+        JButton optionsBtn = new JButton("Options");
+        optionsBtn.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    cardLayout.show(mainPanel, "options");
+                }
+            });
+
+        buttonPanel = new JPanel();
+        buttonPanel.add(showDataButton);
+        buttonPanel.add(optionsBtn);
+        buttonPanel.add(autoProcessButton);
+        applicationPanel.add(buttonPanel, BorderLayout.NORTH);
+
+        counter1TextArea = new JTextArea();
+        counter2TextArea = new JTextArea();
+        counter3TextArea = new JTextArea();
+        counter1TextArea.setEditable(false);
+        counter2TextArea.setEditable(false);
+        counter3TextArea.setEditable(false);
+
+        counter1NextQueueButton = new JButton("Next Queue");
+        counter2NextQueueButton = new JButton("Next Queue");
+        counter3NextQueueButton = new JButton("Next Queue");
+
+        Border border = BorderFactory.createLineBorder(Color.RED, 2);
+        counter1TextArea.setBorder(BorderFactory.createTitledBorder(border, "Counter 1"));
+        counter2TextArea.setBorder(BorderFactory.createTitledBorder(border, "Counter 2"));
+        counter3TextArea.setBorder(BorderFactory.createTitledBorder(border, "Counter 3"));
+
+        JPanel counter1Panel = new JPanel(new BorderLayout());
+        counter1Panel.add(new JScrollPane(counter1TextArea), BorderLayout.CENTER);
+        JPanel counter1ButtonsPanel = new JPanel(new GridLayout(2, 1)); // Adjust grid layout for buttons
+        counter1ButtonsPanel.add(counter1NextQueueButton);
+        counter1Panel.add(counter1ButtonsPanel, BorderLayout.SOUTH);
+
+        JPanel counter2Panel = new JPanel(new BorderLayout());
+        counter2Panel.add(new JScrollPane(counter2TextArea), BorderLayout.CENTER);
+        JPanel counter2ButtonsPanel = new JPanel(new GridLayout(2, 1)); // Adjust grid layout for buttons
+        counter2ButtonsPanel.add(counter2NextQueueButton);
+        counter2Panel.add(counter2ButtonsPanel, BorderLayout.SOUTH);
+
+        JPanel counter3Panel = new JPanel(new BorderLayout());
+        counter3Panel.add(new JScrollPane(counter3TextArea), BorderLayout.CENTER);
+        JPanel counter3ButtonsPanel = new JPanel(new GridLayout(2, 1)); // Adjust grid layout for buttons
+        counter3ButtonsPanel.add(counter3NextQueueButton);
+        counter3Panel.add(counter3ButtonsPanel, BorderLayout.SOUTH);
+
+        JPanel countersPanel = new JPanel(new GridLayout(1, 3));
+        countersPanel.add(counter1Panel);
+        countersPanel.add(counter2Panel);
+        countersPanel.add(counter3Panel);
+        applicationPanel.add(countersPanel, BorderLayout.CENTER);
+
+        mainPanel.add(applicationPanel, "main");
+
+        // Create options panel
+        JPanel optionsPanel = new JPanel(new BorderLayout());
+        optionsPanel.setPreferredSize(new Dimension(200, 300)); // Set preferred size
+
+        JButton backButton = new JButton("Back"); // Back button for options panel
+        backButton.addActionListener(e -> cardLayout.show(mainPanel, "main")); // Switch to "main" panel
+
+        // Add components to options panel
+        optionsPanel.add(buttonPanelMain, BorderLayout.CENTER);
+        optionsPanel.add(backButton, BorderLayout.SOUTH); // Add the back button to the bottom of the options panel
+
+        // Add components to options panel
+        optionsPanel.add(buttonPanelMain, BorderLayout.CENTER);
+
+        mainPanel.add(optionsPanel, "options");
+
+        // Add main panel to frame and show the welcome panel initially
+        add(mainPanel);
+        cardLayout.show(mainPanel, "welcome");
+        setVisible(true);
+
+        // Add action listeners
+        showDataButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    loadData();
+                }
+            });
+
+        addNewCustomerButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addCustomer();
+                }
+            });
+
+        removeCustomerButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    removeCustomer();
+                }
+            });
+
+        searchCustomerButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    searchCustomer();
+                }
+            });
+
+        counter1NextQueueButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    processNextQueue(cafeSystem.counter1, counter1TextArea);
+                }
+            });
+
+        counter2NextQueueButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    processNextQueue(cafeSystem.counter2, counter2TextArea);
+                }
+            });
+
+        counter3NextQueueButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    processNextQueue(cafeSystem.counter3, counter3TextArea);
+                }
+            });
+
+        showAllReceiptsButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    showAllReceipts(cafeSystem.completeStack);
+                }
+            });
+
+        // Add action listener for automatic processing button
+        autoProcessButton.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    autoProcessAllQueues();
+                }
+            });
+    }
+
+    public void loadData() {
+        cafeSystem.readCustomersFromFile("customerList.txt");
+        cafeSystem.processOrders(); // Process orders to assign them to counters
+        JOptionPane.showMessageDialog(this, "Data Loaded Successfully");
+    }
+
+    public void updateCounters() {
+        counter1TextArea.setText(getQueueDetails(cafeSystem.counter1));
+        counter2TextArea.setText(getQueueDetails(cafeSystem.counter2));
+        counter3TextArea.setText(getQueueDetails(cafeSystem.counter3));
+    }
+
+    public String getQueueDetails(Queue<CustomerInformation> counterQueue) {
+        StringBuilder details = new StringBuilder();
+        for (CustomerInformation customer : counterQueue) {
+            details.append("Customer ID: ").append(customer.custId).append("\n")
+            .append("Name: ").append(customer.custName).append("\n")
+            .append("Table: ").append(customer.tableNumber).append("\n");
+        }
+        return details.toString();
+    }
+
+    private void addCustomer() {
+        String custId;
+        while (true) {
+            custId = JOptionPane.showInputDialog("Enter Customer ID (GIXXX):");
+            if (custId == null) { // Check for cancel or close
+                return;
+            }
+            if (cafeSystem.isCustomerIdUnique(custId)) {
+                break;
+            } else {
+                int option = JOptionPane.showConfirmDialog(null, "Customer ID already exists. Do you want to enter a new one?", "Existing Customer ID", JOptionPane.YES_NO_OPTION);
+                if (option == JOptionPane.NO_OPTION) {
+                    return; // Exit the method if the user doesn't want to enter a new ID
+                }
+            }
+        }
+        
+        String orderId = JOptionPane.showInputDialog("Enter Order ID (CGXXXX):");
+        if (orderId == null) {
+            JOptionPane.showMessageDialog(this, "No Data Added");
+        }else {
+            JOptionPane.showMessageDialog(this, "Data Added");
+        }
+
+        String custName = JOptionPane.showInputDialog("Enter Customer Name:");
+        if (custName == null) { // Check for cancel or close
+            JOptionPane.showMessageDialog(this, "No Data Added");
+            return;
+        }
+
+        String tableNumber = JOptionPane.showInputDialog("Enter Table Number:");
+        if (tableNumber == null) { // Check for cancel or close
+            JOptionPane.showMessageDialog(this, "No Data Added");
+            return;
+        }
+
+        CustomerInformation customer = new CustomerInformation(custId, custName, tableNumber);
+
+        boolean addingOrders = true;
+        while (addingOrders) {
+            int option = JOptionPane.showConfirmDialog(null, "Do you want to add an order?", "Add Order", JOptionPane.YES_NO_OPTION);
+            if (option == JOptionPane.YES_OPTION) {
+
+                String itemName = JOptionPane.showInputDialog("Enter Item Name:");
+                if (itemName == null) { // Check for cancel or close
+                    JOptionPane.showMessageDialog(this, "No Data Added");
+                    return;
+                }
+
+                String itemPriceStr = JOptionPane.showInputDialog("Enter Item Price for " + itemName + ":");
+                if (itemPriceStr == null) { // Check for cancel or close
+                    JOptionPane.showMessageDialog(this, "No Data Added");
+                    return;
+                }
+                double itemPrice;
+                try {
+                    itemPrice = Double.parseDouble(itemPriceStr);
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "Invalid price entered. Please try again.");
+                    continue;
+                }
+
+                String quantityStr = JOptionPane.showInputDialog("Enter Quantity for " + itemName + ":");
+                if (quantityStr == null) { // Check for cancel or close
+                    JOptionPane.showMessageDialog(this, "No Data Added");
+                    return;
+                }
+                int quantity;
+                try {
+                    quantity = Integer.parseInt(quantityStr);
+                } catch (NumberFormatException e) {
+                    JOptionPane.showMessageDialog(this, "Invalid quantity entered. Please try again.");
+                    continue;
+                }
+
+                String orderTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("HH:mm")); // Get current time
+                String orderDate = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+                orderInformation order = new orderInformation(orderId, itemName, itemPrice, quantity, orderTime, orderDate);
+                customer.getOrders().add(order);
+            } else {
+                addingOrders = false;
+            }
+        }
+
+        boolean addedSuccessfully = cafeSystem.addCustomer(customer);
+        if (addedSuccessfully) {
+            appendCustomerToFile(customer); // Call method to save customer to file
+            JOptionPane.showMessageDialog(this, "Customer Added Successfully");
+        } else {
+            JOptionPane.showMessageDialog(this, "Failed to Add Customer");
+        }
+    }
+
+    private void appendCustomerToFile(CustomerInformation customer) {
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter("customerList.txt", true))) {
+            for (orderInformation order : customer.getOrders()) {
+                writer.write(String.format("%s;%s;%s;%s;%.2f;%d;%s;%s;%s%n",
+                        customer.getCustId(),
+                        order.getOrderId(),
+                        customer.getCustName(),
+                        order.getItemName(),
+                        order.getItemPrice(),
+                        order.getQuantity(),
+                        order.getOrderTime(),
+                        order.getOrderDate(),
+                        customer.getTableNumber()));
+            }
+            writer.flush(); // Ensure all data is written to the file
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Error saving customer data: " + e.getMessage(), "File Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void removeCustomer() {
+        String custName = JOptionPane.showInputDialog("Enter Customer Name to Remove:");
+        if (custName == null) { // Check for cancel or close
+            JOptionPane.showMessageDialog(this, "No Data Were Removed");
+        }else {
+            JOptionPane.showMessageDialog(this, "Customer Removed Successfully");
+        }
+
+        cafeSystem.removeCustomer(custName);
+    }
+
+    private void searchCustomer() {
+        String custName = JOptionPane.showInputDialog("Enter Customer Name to Search:");
+        CustomerInformation customer = cafeSystem.searchCustomer(custName);
+        if (customer != null) {
+            StringBuilder customerInfo = new StringBuilder();
+            customerInfo.append("Customer ID: ").append(customer.custId)
+            .append("\nName: ").append(customer.custName)
+            .append("\nTable: ").append(customer.tableNumber)
+            .append("\n==============================")
+            .append("\nOrders\n");
+
+            for (orderInformation order : customer.orders) {
+                customerInfo.append("Order ID: ").append(order.orderId)
+                .append("\nItem: ").append(order.itemName)
+                .append("\nPrice (per Item): RM ").append(order.itemPrice)
+                .append("\nQuantity: ").append(order.quantity)
+                .append("\nTime: ").append(order.orderTime)
+                .append("\n");
+            }
+
+            JOptionPane.showMessageDialog(this, customerInfo.toString(), "Customer Found", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            JOptionPane.showMessageDialog(this, "Customer Not Found", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+    private void processNextQueue(Queue<CustomerInformation> counter, JTextArea textArea) {
+        textArea.setText(""); // Clear the text area first
+        int count = 0;
+
+        while (count < 5 && !counter.isEmpty()) {
+            CustomerInformation customer = counter.poll();
+            textArea.append("==================================================\n");
+            textArea.append("Serving Customer: " + customer.getCustName() + "\n");
+            textArea.append("==================================================\n");
+            for (orderInformation order : customer.getOrders()) {
+                textArea.append("Order ID: " + order.getOrderId()
+                    + "\nItem: " + order.getItemName()
+                    + "\nPrice (per Item): RM" + order.getItemPrice()
+                    + "\nQuantity: " + order.getQuantity()
+                    + "\nTime: " + order.getOrderTime() + "\n");
+            }
+            textArea.append("\n");
+
+            // Process the order by marking it as completed
+            cafeSystem.completeOrder(customer); // Complete the order
+            count++;
+        }
+
+        if (counter.isEmpty()) {
+            textArea.append("No more customers in queue.");
+        }
+    }
+
+    private void showAllReceipts(Stack<CustomerInformation> completeStack) {
+        StringBuilder receipts = new StringBuilder("All Receipts:\n\n");
+
+        int counter = 1; // Initialize counter for grouping
+
+        // Iterate through the complete stack of customers
+        for (CustomerInformation customer : completeStack) {
+            double total = 0.0;
+            receipts.append("=============================\n")
+            .append("Counter ").append(counter % 3 + 1).append("\n") // Display counter (1, 2, or 3)
+            .append("Customer ID: ").append(customer.getCustId()).append("\n")
+            .append("Customer Name: ").append(customer.getCustName()).append("\n");
+
+            int orderCount = 0; // Initialize order count within each customer
+
+            // Iterate through orders of the current customer
+            for (orderInformation order : customer.getOrders()) {
+                double itemTotal = order.getItemPrice() * order.getQuantity();
+                receipts.append(String.format("Order ID: %s\nItem: %s\nPrice (per Item): RM%.2f\nQuantity: %d\nTime: %s%n",
+                        order.getOrderId(), order.getItemName(), order.getItemPrice(), order.getQuantity(), order.getOrderTime()));
+                total += itemTotal;
+
+                orderCount++;
+
+                // Check if 5 orders have been displayed for this customer
+                if (orderCount % 5 == 0) {
+                    receipts.append("Total Price for Group: RM").append(String.format("%.2f", total)).append("\n\n");
+                    total = 0.0; // Reset total for the next group
+                }
+            }
+
+            // If there are remaining orders less than 5, display their total
+            if (orderCount % 5 != 0) {
+                receipts.append("Total Price for Group: RM").append(String.format("%.2f", total)).append("\n\n");
+            }
+
+            counter++; // Increment counter for the next group
+        }
+
+        JTextArea receiptsTextArea = new JTextArea(receipts.toString(), 20, 50); // Set preferred size
+        receiptsTextArea.setEditable(false);
+
+        JScrollPane receiptsScrollPane = new JScrollPane(receiptsTextArea);
+        receiptsScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+
+        // Creating a panel to add the JScrollPane
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.add(receiptsScrollPane, BorderLayout.CENTER);
+
+        JOptionPane.showMessageDialog(this, panel, "All Receipts", JOptionPane.INFORMATION_MESSAGE);
+    }
+
+    public void autoProcessAllQueues() {
+        autoProcessQueue(cafeSystem.counter1, counter1TextArea);
+        autoProcessQueue(cafeSystem.counter2, counter2TextArea);
+        autoProcessQueue(cafeSystem.counter3, counter3TextArea);
+        updateReceipts(); // Update receipts after auto processing all queues
+    }
+
+    private void autoProcessQueue(Queue<CustomerInformation> counterQueue, JTextArea textArea) {
+        int customersProcessed = 0;
+        int count = 0;
+
+        // Continue processing until 100 customers have been processed or the queue is empty
+        while (customersProcessed < 100 && !counterQueue.isEmpty()) {
+            CustomerInformation customer = counterQueue.poll();
+
+            // Process customer here (simulate processing time or any specific action)
+            // For demonstration, let's append customer details to the text area
+            textArea.append("Processing Customer:\n");
+            textArea.append("Customer ID: " + customer.getCustId() + "\n");
+            textArea.append("Name: " + customer.getCustName() + "\n");
+            textArea.append("Table: " + customer.getTableNumber() + "\n");
+            textArea.append("--------------------------\n");
+
+            // Add the processed customer to the complete stack
+            cafeSystem.completeStack.push(customer);
+
+            customersProcessed++;
+            count++;
+        }
+
+        if (customersProcessed == 0) {
+            JOptionPane.showMessageDialog(this, "No customers in the queue.");
+        } else {
+            JOptionPane.showMessageDialog(this, count + " customers served.");
+        }
+    }
+
+    private void updateReceipts() {
+        showAllReceipts(cafeSystem.completeStack); // Call the method to update receipts
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    new GUI().setVisible(true);
+                }
+            });
+    }
+}
