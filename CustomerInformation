@@ -1,0 +1,40 @@
+import java.util.*;
+
+public class CustomerInformation {
+    public String custId;
+    public String custName;
+    public String tableNumber;
+    public List<orderInformation> orders;
+
+    public CustomerInformation(String custId, String custName, String tableNumber) {
+        this.custId = custId;
+        this.custName = custName;
+        this.tableNumber = tableNumber;
+        this.orders = new ArrayList<>();
+    }
+
+    public String getCustId() {
+        return custId;
+    }
+
+    public String getCustName() {
+        return custName;
+    }
+
+    public String getTableNumber() {
+        return tableNumber;
+    }
+
+    public List<orderInformation> getOrders() {
+        return orders;
+    }
+
+    // Optionally, you may want to add methods to modify or access orders
+    public void addOrder(orderInformation order) {
+        orders.add(order);
+    }
+
+    public void removeOrder(orderInformation order) {
+        orders.remove(order);
+    }
+}
